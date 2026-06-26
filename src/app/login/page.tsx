@@ -32,7 +32,7 @@ export default function LoginPage() {
           autoFocus
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button className="w-full rounded bg-black px-3 py-2 text-white">
+        <button type="submit" className="w-full rounded bg-black px-3 py-2 text-white">
           Entrar
         </button>
       </form>
