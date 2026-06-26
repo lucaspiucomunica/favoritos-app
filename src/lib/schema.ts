@@ -5,6 +5,8 @@ export const addLinkSchema = z.object({
 });
 
 export const updateLinkSchema = z.object({
+  title: z.string().max(500).nullable().optional(),
+  description: z.string().max(5000).nullable().optional(),
   category_id: z.string().uuid().nullable().optional(),
   tags: z.array(z.string()).optional(),
   is_read: z.boolean().optional(),
@@ -14,6 +16,9 @@ export const updateLinkSchema = z.object({
 export const classifyResultSchema = z.object({
   category: z.string(),
   tags: z.array(z.string()),
+  // Título conciso sugerido pela IA quando o original é ausente/ruim/longo demais;
+  // null (ou ausente) significa "manter o título atual".
+  title: z.string().nullable().optional(),
 });
 
 export const createCategorySchema = z.object({

@@ -12,6 +12,8 @@ interface EditLinkDialogProps {
 
 export default function EditLinkDialog({ link, categories, onClose, onSave }: EditLinkDialogProps) {
   const [cats, setCats] = useState<Category[]>(categories);
+  const [title, setTitle] = useState<string>(link.title ?? '');
+  const [description, setDescription] = useState<string>(link.description ?? '');
   const [categoryId, setCategoryId] = useState<string>(link.category_id ?? '');
   const [tags, setTags] = useState<string[]>(link.tags ?? []);
   const [tagInput, setTagInput] = useState('');
@@ -21,7 +23,7 @@ export default function EditLinkDialog({ link, categories, onClose, onSave }: Ed
   const [creatingCat, setCreatingCat] = useState(false);
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const firstFocusRef = useRef<HTMLSelectElement>(null);
+  const firstFocusRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -92,6 +94,10 @@ export default function EditLinkDialog({ link, categories, onClose, onSave }: Ed
     setError('');
     try {
       const body: Record<string, unknown> = { tags };
+      // Enviamos a string literal (inclusive vazia): COALESCE('', col) limpa o campo;
+      // undefined/null manteria o valor atual.
+      body.title = title.trim();
+      body.description = description.trim();
       // Always include category_id (even null) so PATCH uses setCategory path
       body.category_id = categoryId === '' ? null : categoryId;
 
@@ -151,6 +157,53 @@ export default function EditLinkDialog({ link, categories, onClose, onSave }: Ed
           {link.url}
         </p>
 
+        {/* Title */}
+        <div className="mb-4">
+          <label
+            htmlFor="edit-title"
+            className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}
+          >
+            Título
+          </label>
+          <input
+            id="edit-title"
+            ref={firstFocusRef}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Título do link"
+            className={[
+              'w-full rounded-lg border px-3 py-2 text-sm transition-colors',
+              'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]',
+              'focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/20',
+            ].join(' ')}
+          />
+        </div>
+
+        {/* Description */}
+        <div className="mb-4">
+          <label
+            htmlFor="edit-description"
+            className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}
+          >
+            Descrição
+          </label>
+          <textarea
+            id="edit-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            placeholder="Contexto do link (útil quando os metadados não trazem nada)"
+            className={[
+              'w-full rounded-lg border px-3 py-2 text-sm transition-colors resize-y',
+              'border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]',
+              'focus:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/20',
+            ].join(' ')}
+          />
+        </div>
+
         {/* Category */}
         <div className="mb-4">
           <label
@@ -160,7 +213,6 @@ export default function EditLinkDialog({ link, categories, onClose, onSave }: Ed
             Categoria
           </label>
           <select
-            ref={firstFocusRef}
             value={categoryId}
             onChange={(e) => { setCategoryId(e.target.value); setShowNewCat(false); }}
             className={[

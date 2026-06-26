@@ -27,6 +27,14 @@ describe('normalizeResult', () => {
     );
     expect(r.tags).toEqual(['llm', 'api', 'b', 'c', 'd']);
   });
+  it('título ausente/vazio vira null', () => {
+    expect(normalizeResult({ category: 'IA', tags: [] }, CATEGORIES).title).toBeNull();
+    expect(normalizeResult({ category: 'IA', tags: [], title: '   ' }, CATEGORIES).title).toBeNull();
+  });
+  it('título sugerido é preservado e trimado', () => {
+    const r = normalizeResult({ category: 'IA', tags: [], title: '  Guia de LLMs  ' }, CATEGORIES);
+    expect(r.title).toBe('Guia de LLMs');
+  });
 });
 
 describe('classifyLink', () => {

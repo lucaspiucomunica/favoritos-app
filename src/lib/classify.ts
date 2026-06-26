@@ -48,17 +48,24 @@ export function buildMessages(
         `Link:\n- URL: ${input.url}\n- Título: ${input.title ?? ''}\n` +
         `- Descrição: ${input.description ?? ''}\n\n` +
         'Retorne JSON no formato exato:\n' +
-        '{ "category": "<uma das categorias>", "tags": ["tag1", "tag2", "tag3"] }\n\n' +
-        'Regras: 1 categoria; 3 a 5 tags curtas em minúsculas, em português, ' +
-        'específicas ao conteúdo (não genéricas como "link" ou "internet").',
+        '{ "category": "<uma das categorias>", "tags": ["tag1", "tag2", "tag3"], "title": "<título sugerido ou null>" }\n\n' +
+        'Regras:\n' +
+        '- category: 1 categoria da lista.\n' +
+        '- tags: 3 a 5 tags curtas em minúsculas, em português, específicas ao ' +
+        'conteúdo (não genéricas como "link" ou "internet").\n' +
+        '- title: sugira um título curto e claro (no máximo ~70 caracteres, em português) ' +
+        'APENAS se o título atual estiver ausente, for longo demais, confuso, ou for um ' +
+        'trecho do corpo do post em vez de um título de verdade (comum em redes sociais). ' +
+        'Se o título atual já for bom e conciso, retorne null. Nunca invente fatos: ' +
+        'baseie-se no conteúdo fornecido.',
     },
   ];
 }
 
 export function normalizeResult(
-  raw: { category: string; tags: string[] },
+  raw: { category: string; tags: string[]; title?: string | null },
   categories: string[],
-): { category: string | null; tags: string[] } {
+): { category: string | null; tags: string[]; title: string | null } {
   const category =
     categories.includes(raw.category) && raw.category !== SEM_CATEGORIA
       ? raw.category
@@ -73,7 +80,9 @@ export function normalizeResult(
       if (tags.length === 5) break;
     }
   }
-  return { category, tags };
+  const title =
+    typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim() : null;
+  return { category, tags, title };
 }
 
 export async function classifyLink(
@@ -84,7 +93,7 @@ export async function classifyLink(
     client: OpenAIClient;
     timeoutMs?: number;
   },
-): Promise<{ category: string | null; tags: string[] }> {
+): Promise<{ category: string | null; tags: string[]; title: string | null }> {
   const completion = await opts.client.chat.completions.create(
     {
       model: MODEL,
@@ -103,7 +112,13 @@ export async function runClassification(input: {
   url: string;
   title: string | null;
   description: string | null;
-}): Promise<{ category_id: string | null; tags: string[]; ai_status: 'done' | 'failed'; ai_error: string | null }> {
+}): Promise<{
+  category_id: string | null;
+  tags: string[];
+  title: string | null;
+  ai_status: 'done' | 'failed';
+  ai_error: string | null;
+}> {
   try {
     const [names, tags, categories] = await Promise.all([
       categoryNames(),
@@ -120,11 +135,18 @@ export async function runClassification(input: {
     const cat = result.category
       ? categories.find((c) => c.name === result.category) ?? null
       : null;
-    return { category_id: cat?.id ?? null, tags: result.tags, ai_status: 'done', ai_error: null };
+    return {
+      category_id: cat?.id ?? null,
+      tags: result.tags,
+      title: result.title,
+      ai_status: 'done',
+      ai_error: null,
+    };
   } catch (err) {
     return {
       category_id: null,
       tags: [],
+      title: null,
       ai_status: 'failed',
       ai_error: err instanceof Error ? err.message : String(err),
     };

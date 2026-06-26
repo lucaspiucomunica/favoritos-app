@@ -120,22 +120,42 @@ export default function HomeClient({
         }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <span
-            className="text-xl font-semibold tracking-tight select-none"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--ink)', letterSpacing: '-0.02em' }}
-          >
-            Favoritos
-          </span>
+          <div className="flex items-center gap-2.5 select-none">
+            {/* Selo / logo */}
+            <span
+              className="flex items-center justify-center rounded-lg shrink-0"
+              style={{ width: 30, height: 30, background: 'var(--indigo)' }}
+              aria-hidden="true"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" style={{ color: 'white' }}>
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+            </span>
+            <span
+              className="text-xl font-semibold tracking-tight"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--ink)', letterSpacing: '-0.02em' }}
+            >
+              Favoritos
+            </span>
+          </div>
           <button
             type="button"
             onClick={async () => {
               await fetch('/api/auth', { method: 'DELETE' }).catch(() => {});
               window.location.href = '/login';
             }}
-            className="text-xs transition-colors"
-            style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}
+            className={[
+              'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors',
+              'text-[11px] font-mono tracking-[0.06em] uppercase',
+              'border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--line)]',
+            ].join(' ')}
           >
-            sair
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sair
           </button>
         </div>
       </header>
@@ -158,12 +178,7 @@ export default function HomeClient({
         )}
 
         {/* ── Capture bar (hero) ── */}
-        <section
-          className="rounded-2xl p-5 sm:p-6"
-          style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}
-        >
-          <AddLinkForm onAdd={handleAdd} />
-        </section>
+        <AddLinkForm onAdd={handleAdd} />
 
         {/* ── Filters ── */}
         {!loadError && (

@@ -34,9 +34,13 @@ function formatDate(iso: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+// Acima deste tamanho a descrição é recolhida e ganha um botão "Ver mais".
+const DESC_COLLAPSE_LIMIT = 180;
+
 export default function LinkCard({ link, categories, onUpdate, onDelete, onTagClick }: LinkCardProps) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null); // which action is busy
+  const [descExpanded, setDescExpanded] = useState(false);
 
   const category = categories.find((c) => c.id === link.category_id);
 
@@ -105,6 +109,7 @@ export default function LinkCard({ link, categories, onUpdate, onDelete, onTagCl
   const domain = getDomain(link.url);
   const initial = getDomainInitial(link.url);
   const date = formatDate(link.created_at);
+  const displayTitle = link.title?.trim() ? link.title : domain;
 
   return (
     <>
@@ -133,14 +138,30 @@ export default function LinkCard({ link, categories, onUpdate, onDelete, onTagCl
 
         {/* ── OG Image or Placeholder ── */}
         <div
-          className="w-full overflow-hidden"
+          className="relative w-full overflow-hidden"
           style={{ aspectRatio: '16 / 10', flexShrink: 0, background: 'var(--paper)' }}
         >
+          {/* Unread badge */}
+          {!link.is_read && (
+            <span
+              className="absolute top-2 left-2 z-[1] flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] uppercase tracking-wider"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                background: 'rgba(85,56,238,0.92)',
+                color: 'white',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+              }}
+            >
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-white" aria-hidden="true" />
+              Não lido
+            </span>
+          )}
           {link.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={link.image_url}
-              alt={link.title ?? domain}
+              alt={displayTitle}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -166,7 +187,7 @@ export default function LinkCard({ link, categories, onUpdate, onDelete, onTagCl
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block leading-snug hover:underline decoration-[var(--indigo)]/40"
+            className="block leading-snug line-clamp-3 hover:underline decoration-[var(--indigo)]/40"
             style={{
               fontFamily: 'var(--font-display)',
               fontWeight: 600,
@@ -175,17 +196,30 @@ export default function LinkCard({ link, categories, onUpdate, onDelete, onTagCl
               color: 'var(--ink)',
             }}
           >
-            {link.title ?? domain}
+            {displayTitle}
           </a>
 
-          {/* Description */}
+          {/* Description — completa, com recolher/expandir em vez de "…" */}
           {link.description && (
-            <p
-              className="text-sm leading-relaxed line-clamp-2"
-              style={{ color: 'var(--muted)', fontSize: '13px' }}
-            >
-              {link.description}
-            </p>
+            <div>
+              <p
+                className={`text-sm leading-relaxed${descExpanded ? '' : ' line-clamp-4'}`}
+                style={{ color: 'var(--muted)', fontSize: '13px' }}
+              >
+                {link.description}
+              </p>
+              {link.description.length > DESC_COLLAPSE_LIMIT && (
+                <button
+                  type="button"
+                  onClick={() => setDescExpanded((v) => !v)}
+                  className="mt-0.5 text-[11px] font-medium hover:underline"
+                  style={{ fontFamily: 'var(--font-mono)', color: 'var(--indigo)' }}
+                  aria-expanded={descExpanded}
+                >
+                  {descExpanded ? 'Ver menos' : 'Ver mais'}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Meta: domain · date */}
@@ -334,19 +368,26 @@ export default function LinkCard({ link, categories, onUpdate, onDelete, onTagCl
 
             <div className="flex-1" />
 
-            {/* Read status indicator */}
-            {!link.is_read && (
-              <span
-                className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  background: 'rgba(85,56,238,0.1)',
-                  color: 'var(--indigo)',
-                }}
-              >
-                Não lido
-              </span>
-            )}
+            {/* Open link — CTA explícito (no mobile não fica óbvio que o título abre o link) */}
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] uppercase tracking-[0.06em] transition-colors"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                background: 'rgba(85,56,238,0.1)',
+                color: 'var(--indigo)',
+              }}
+              aria-label="Abrir link em nova aba"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              Abrir
+            </a>
           </div>
         </div>
       </article>

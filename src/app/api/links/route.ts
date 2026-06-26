@@ -42,7 +42,8 @@ export async function POST(req: Request) {
 
   const link = await insertLink({
     url,
-    title: meta.title,
+    // a IA pode sugerir um título mais conciso quando o do metadado é ruim/longo
+    title: classification.title ?? meta.title,
     description: meta.description,
     image_url: meta.image_url,
     site_name: meta.site_name,

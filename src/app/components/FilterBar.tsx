@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Category } from '@/lib/types';
 
 export interface Filters {
@@ -22,6 +22,23 @@ interface FilterBarProps {
 
 export default function FilterBar({ categories, filters, onChange, onSearchCommit }: FilterBarProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  // No desktop, a roda do mouse (deltaY vertical) não rola containers horizontais.
+  // Convertemos o scroll vertical em horizontal quando há overflow nas abas.
+  // Listener não-passivo para podermos chamar preventDefault e não rolar a página.
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (!el || e.deltaY === 0) return;
+      if (el.scrollWidth <= el.clientWidth) return; // sem overflow, deixa a página rolar
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   function handleSearchChange(val: string) {
     // Update the displayed value immediately (no local state needed — parent owns it)
@@ -56,11 +73,11 @@ export default function FilterBar({ categories, filters, onChange, onSearchCommi
 
   const toggleClass = (active: boolean) =>
     [
-      'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors',
+      'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors',
       'text-[11px] font-mono tracking-[0.06em] uppercase',
       active
-        ? 'ring-1'
-        : 'text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--line)]',
+        ? ''
+        : 'border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--line)]',
     ].join(' ');
 
   return (
@@ -92,7 +109,7 @@ export default function FilterBar({ categories, filters, onChange, onSearchCommi
 
       {/* Category tabs — scrollable */}
       <div className="flex-1 min-w-0">
-        <div className="flex gap-1 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+        <div ref={tabsRef} className="flex gap-1 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
           <button
             onClick={() => setCategory('')}
             className={tabClass(filters.categoryId === '')}
@@ -120,10 +137,12 @@ export default function FilterBar({ categories, filters, onChange, onSearchCommi
           style={filters.favorite ? {
             background: 'rgba(255,92,73,0.1)',
             color: 'var(--coral)',
-            outline: '1px solid rgba(255,92,73,0.3)',
+            borderColor: 'rgba(255,92,73,0.4)',
           } : {}}
         >
-          <span aria-hidden="true">♥</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={filters.favorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} strokeLinejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
           Favoritos
         </button>
         <button
@@ -133,11 +152,13 @@ export default function FilterBar({ categories, filters, onChange, onSearchCommi
           style={filters.unread ? {
             background: 'rgba(85,56,238,0.1)',
             color: 'var(--indigo)',
-            outline: '1px solid var(--indigo)',
-            outlineOffset: '0px',
+            borderColor: 'var(--indigo)',
           } : {}}
         >
-          <span aria-hidden="true">◷</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
           Não lidos
         </button>
       </div>

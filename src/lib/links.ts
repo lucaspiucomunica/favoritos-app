@@ -72,6 +72,8 @@ export async function updateLink(
   // (setar category_id = null) — use setCategory(), que faz a atribuição direta.
   const rows = (await sql`
     UPDATE links SET
+      title       = COALESCE(${patch.title ?? null}, title),
+      description = COALESCE(${patch.description ?? null}, description),
       category_id = COALESCE(${patch.category_id ?? null}, category_id),
       tags        = COALESCE(${patch.tags ?? null}, tags),
       is_read     = COALESCE(${patch.is_read ?? null}, is_read),
@@ -85,10 +87,18 @@ export async function updateLink(
 
 export async function setClassification(
   id: string,
-  c: { category_id: string | null; tags: string[]; ai_status: AiStatus; ai_error: string | null },
+  c: {
+    category_id: string | null;
+    tags: string[];
+    ai_status: AiStatus;
+    ai_error: string | null;
+    // título sugerido pela IA; null mantém o título atual (COALESCE)
+    title?: string | null;
+  },
 ): Promise<Link | null> {
   const rows = (await sql`
     UPDATE links SET
+      title = COALESCE(${c.title ?? null}, title),
       category_id = ${c.category_id}, tags = ${c.tags},
       ai_status = ${c.ai_status}, ai_error = ${c.ai_error}, updated_at = now()
     WHERE id = ${id}
