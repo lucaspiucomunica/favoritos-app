@@ -9,7 +9,10 @@ const MODEL = 'deepseek-v4-flash';
 export type OpenAIClient = {
   chat: {
     completions: {
-      create: (args: unknown) => Promise<{
+      create: (
+        body: unknown,
+        options?: unknown,
+      ) => Promise<{
         choices: { message: { content: string | null } }[];
       }>;
     };
@@ -82,13 +85,15 @@ export async function classifyLink(
     timeoutMs?: number;
   },
 ): Promise<{ category: string | null; tags: string[] }> {
-  const completion = await opts.client.chat.completions.create({
-    model: MODEL,
-    messages: buildMessages(input, opts.categories, opts.existingTags),
-    response_format: { type: 'json_object' },
-    temperature: 0.2,
-    ...(opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : {}),
-  });
+  const completion = await opts.client.chat.completions.create(
+    {
+      model: MODEL,
+      messages: buildMessages(input, opts.categories, opts.existingTags),
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+    },
+    opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : undefined,
+  );
   const content = completion.choices[0]?.message?.content ?? '';
   const parsed = classifyResultSchema.parse(JSON.parse(content));
   return normalizeResult(parsed, opts.categories);
