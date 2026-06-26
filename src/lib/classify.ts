@@ -91,3 +91,38 @@ export async function classifyLink(
   const parsed = classifyResultSchema.parse(JSON.parse(content));
   return normalizeResult(parsed, opts.categories);
 }
+
+import { categoryNames, listCategories } from './categories';
+import { allTags } from './links';
+
+export async function runClassification(input: {
+  url: string;
+  title: string | null;
+  description: string | null;
+}): Promise<{ category_id: string | null; tags: string[]; ai_status: 'done' | 'failed'; ai_error: string | null }> {
+  try {
+    const [names, tags, categories] = await Promise.all([
+      categoryNames(),
+      allTags(),
+      listCategories(),
+    ]);
+    const client = createDeepSeekClient();
+    const result = await classifyLink(input, {
+      categories: names,
+      existingTags: tags,
+      client,
+      timeoutMs: 20000,
+    });
+    const cat = result.category
+      ? categories.find((c) => c.name === result.category) ?? null
+      : null;
+    return { category_id: cat?.id ?? null, tags: result.tags, ai_status: 'done', ai_error: null };
+  } catch (err) {
+    return {
+      category_id: null,
+      tags: [],
+      ai_status: 'failed',
+      ai_error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
