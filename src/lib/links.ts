@@ -67,6 +67,9 @@ export async function updateLink(
   id: string,
   patch: UpdateLinkInput,
 ): Promise<Link | null> {
+  // COALESCE só atualiza campos presentes no patch; um valor null/undefined
+  // mantém o valor atual. Por isso NÃO use updateLink para LIMPAR a categoria
+  // (setar category_id = null) — use setCategory(), que faz a atribuição direta.
   const rows = (await sql`
     UPDATE links SET
       category_id = COALESCE(${patch.category_id ?? null}, category_id),
@@ -103,7 +106,7 @@ export async function deleteLink(id: string): Promise<boolean> {
 
 export async function allTags(): Promise<string[]> {
   const rows = (await sql`
-    SELECT DISTINCT unnest(tags) AS tag FROM links ORDER BY tag ASC
+    SELECT DISTINCT unnest(tags) AS tag FROM links ORDER BY 1 ASC
   `) as { tag: string }[];
   return rows.map((r) => r.tag);
 }
