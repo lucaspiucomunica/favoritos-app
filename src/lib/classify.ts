@@ -1,5 +1,7 @@
 import OpenAI from 'openai';
 import { classifyResultSchema } from './schema';
+import { categoryNames, listCategories } from './categories';
+import { allTags } from './links';
 
 export const SEM_CATEGORIA = 'Sem categoria';
 const MODEL = 'deepseek-v4-flash';
@@ -91,9 +93,6 @@ export async function classifyLink(
   const parsed = classifyResultSchema.parse(JSON.parse(content));
   return normalizeResult(parsed, opts.categories);
 }
-
-import { categoryNames, listCategories } from './categories';
-import { allTags } from './links';
 
 export async function runClassification(input: {
   url: string;
