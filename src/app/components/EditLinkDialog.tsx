@@ -119,7 +119,7 @@ export default function EditLinkDialog({ link, categories, onClose, onSave }: Ed
     <dialog
       ref={dialogRef}
       onClick={(e) => { if (e.target === dialogRef.current) onClose(); }}
-      className="m-auto max-w-md w-full rounded-2xl p-0 shadow-2xl backdrop:bg-[var(--ink)]/40 backdrop:backdrop-blur-sm"
+      className="m-auto max-w-md w-full rounded-2xl p-0 shadow-2xl backdrop:bg-[var(--ink)]/40 backdrop:blur-sm"
       style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}
     >
       <div className="p-6">

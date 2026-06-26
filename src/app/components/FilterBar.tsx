@@ -8,6 +8,7 @@ export interface Filters {
   categoryId: string;
   favorite: boolean;
   unread: boolean;
+  tag?: string;
 }
 
 interface FilterBarProps {
@@ -132,12 +133,39 @@ export default function FilterBar({ categories, filters, onChange, onSearchCommi
           style={filters.unread ? {
             background: 'rgba(85,56,238,0.1)',
             color: 'var(--indigo)',
+            outline: '1px solid var(--indigo)',
+            outlineOffset: '0px',
           } : {}}
         >
           <span aria-hidden="true">◷</span>
           Não lidos
         </button>
       </div>
+
+      {/* Active tag pill */}
+      {filters.tag && (
+        <div className="flex items-center gap-1 shrink-0">
+          <span
+            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              background: 'rgba(85,56,238,0.1)',
+              color: 'var(--indigo)',
+              border: '1px solid rgba(85,56,238,0.3)',
+            }}
+          >
+            #{filters.tag}
+            <button
+              type="button"
+              onClick={() => onChange({ ...filters, tag: undefined })}
+              className="leading-none hover:opacity-70 transition-opacity ml-0.5"
+              aria-label="Remover filtro de tag"
+            >
+              ✕
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

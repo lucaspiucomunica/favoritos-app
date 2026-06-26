@@ -9,6 +9,7 @@ interface LinkCardProps {
   categories: Category[];
   onUpdate: (updated: Link) => void;
   onDelete: (id: string) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 function getDomainInitial(url: string): string {
@@ -33,7 +34,7 @@ function formatDate(iso: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export default function LinkCard({ link, categories, onUpdate, onDelete }: LinkCardProps) {
+export default function LinkCard({ link, categories, onUpdate, onDelete, onTagClick }: LinkCardProps) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null); // which action is busy
 
@@ -214,18 +215,21 @@ export default function LinkCard({ link, categories, onUpdate, onDelete }: LinkC
           {link.tags && link.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-0.5">
               {link.tags.map((tag) => (
-                <span
+                <button
                   key={tag}
-                  className="text-[10px] px-1.5 py-0.5 rounded"
+                  type="button"
+                  onClick={() => onTagClick?.(tag)}
+                  className="text-[10px] px-1.5 py-0.5 rounded transition-opacity hover:opacity-70"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     background: 'rgba(85,56,238,0.08)',
                     color: 'var(--indigo)',
                     border: '1px solid rgba(85,56,238,0.2)',
+                    cursor: onTagClick ? 'pointer' : 'default',
                   }}
                 >
                   #{tag}
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -243,7 +247,7 @@ export default function LinkCard({ link, categories, onUpdate, onDelete }: LinkC
                 onClick={reclassify}
                 disabled={busy === 'reclassify'}
                 className="text-[10px] px-2 py-0.5 rounded transition-colors font-mono uppercase tracking-wider"
-                style={{ color: 'var(--indigo)', border: '1px solid var(--indigo)/30' }}
+                style={{ color: 'var(--indigo)', border: '1px solid rgba(85,56,238,0.3)' }}
               >
                 {busy === 'reclassify' ? '…' : 'Reclassificar'}
               </button>
@@ -336,7 +340,7 @@ export default function LinkCard({ link, categories, onUpdate, onDelete }: LinkC
                 className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  background: 'var(--indigo)/10',
+                  background: 'rgba(85,56,238,0.1)',
                   color: 'var(--indigo)',
                 }}
               >

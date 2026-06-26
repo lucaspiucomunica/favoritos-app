@@ -16,6 +16,7 @@ interface HomeClientProps {
 export default function HomeClient({
   initialLinks,
   initialCategories,
+  // initialTags available for future tag suggestions; tag filtering is driven by card clicks
   loadError,
 }: HomeClientProps) {
   const [links, setLinks] = useState<Link[]>(initialLinks);
@@ -25,6 +26,7 @@ export default function HomeClient({
     categoryId: '',
     favorite: false,
     unread: false,
+    tag: undefined,
   });
   const [fetching, setFetching] = useState(false);
 
@@ -36,6 +38,7 @@ export default function HomeClient({
       if (f.categoryId) sp.set('category', f.categoryId);
       if (f.favorite) sp.set('favorite', '1');
       if (f.unread) sp.set('unread', '1');
+      if (f.tag) sp.set('tag', f.tag);
 
       const res = await fetch(`/api/links?${sp.toString()}`);
       if (res.ok) {
@@ -95,8 +98,14 @@ export default function HomeClient({
     setLinks((prev) => prev.filter((l) => l.id !== id));
   }
 
+  function handleTagClick(tag: string) {
+    const next = { ...filters, tag };
+    setFilters(next);
+    void fetchLinks(next);
+  }
+
   const isEmpty = !loadError && !fetching && links.length === 0;
-  const noFiltersActive = !filters.q && !filters.categoryId && !filters.favorite && !filters.unread;
+  const noFiltersActive = !filters.q && !filters.categoryId && !filters.favorite && !filters.unread && !filters.tag;
 
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: 'var(--paper)' }}>
@@ -117,10 +126,9 @@ export default function HomeClient({
           >
             Favoritos
           </span>
-          <a
-            href="/api/auth"
-            onClick={async (e) => {
-              e.preventDefault();
+          <button
+            type="button"
+            onClick={async () => {
               await fetch('/api/auth', { method: 'DELETE' }).catch(() => {});
               window.location.href = '/login';
             }}
@@ -128,7 +136,7 @@ export default function HomeClient({
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}
           >
             sair
-          </a>
+          </button>
         </div>
       </header>
 
@@ -227,6 +235,7 @@ export default function HomeClient({
                     categories={categories}
                     onUpdate={handleUpdate}
                     onDelete={handleDelete}
+                    onTagClick={handleTagClick}
                   />
                 ))}
               </div>
