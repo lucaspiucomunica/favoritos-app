@@ -1,26 +1,130 @@
+/*
+ * Favoritos — Design System Tokens
+ *
+ * Palette:
+ *   --paper   #F2F1F6  lavanda-acinzentado frio (fundo de página)
+ *   --surface #FFFFFF  cartões
+ *   --ink     #241B2E  texto primário (quase-preto com fundo violeta quente)
+ *   --muted   #6B6475  texto secundário / metadados
+ *   --indigo  #5538EE  ação primária, foco, filtro ativo
+ *   --coral   #FF5C49  fita de favorito (assinatura), destaque
+ *   --line    #E5E2EC  hairline fria (bordas)
+ *
+ * Fontes:
+ *   Display: Bricolage Grotesque — títulos dos cartões e wordmark
+ *   Body:    Geist Sans          — labels, descrições, UI
+ *   Utility: Geist Mono          — metadados, tags, tabs de categoria
+ *
+ * Assinatura: fita coral dobrada no canto superior direito dos cartões favoritos.
+ */
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper:   #F2F1F6;
+  --surface: #FFFFFF;
+  --ink:     #241B2E;
+  --muted:   #6B6475;
+  --indigo:  #5538EE;
+  --coral:   #FF5C49;
+  --line:    #E5E2EC;
+
+  --font-display: var(--font-bricolage);
+  --font-body:    var(--font-geist-sans);
+  --font-mono:    var(--font-geist-mono);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper:   var(--paper);
+  --color-surface: var(--surface);
+  --color-ink:     var(--ink);
+  --color-muted:   var(--muted);
+  --color-indigo:  var(--indigo);
+  --color-coral:   var(--coral);
+  --color-line:    var(--line);
+
+  --font-sans:    var(--font-geist-sans);
+  --font-mono:    var(--font-geist-mono);
+  --font-display: var(--font-bricolage);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring global — índigo visível */
+:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Shimmer para estado de carregamento */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--line) 25%,
+    var(--paper) 50%,
+    var(--line) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+    background: var(--line);
+  }
+}
+
+/* Fita de favorito — bookmark ribbon no canto sup. direito */
+.ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 36px 36px 0;
+  border-color: transparent var(--coral) transparent transparent;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform-origin: top right;
+}
+
+.ribbon::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: -34px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 32px 32px 0;
+  border-color: transparent color-mix(in srgb, var(--coral) 70%, #000) transparent transparent;
+  opacity: 0.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ribbon {
+    transition: none;
+  }
 }
