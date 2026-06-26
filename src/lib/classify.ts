@@ -54,7 +54,10 @@ export function normalizeResult(
   raw: { category: string; tags: string[] },
   categories: string[],
 ): { category: string | null; tags: string[] } {
-  const category = categories.includes(raw.category) ? raw.category : null;
+  const category =
+    categories.includes(raw.category) && raw.category !== SEM_CATEGORIA
+      ? raw.category
+      : null;
   const seen = new Set<string>();
   const tags: string[] = [];
   for (const t of raw.tags) {
